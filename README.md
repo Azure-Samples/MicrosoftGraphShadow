@@ -1,3 +1,20 @@
+---
+page_type: sample
+languages:
+- csharp
+- bash
+- azurecli
+- bicep
+
+products:
+- azure-key-vault
+- dotnet
+- azure-functions
+- azure-cosmos-db
+
+name: Graph Shadowing
+description: "Sample shows how to efficiently get data from Microsoft Graph, using OData deltas and subscriptions. Azure Durable functions is used to keep track of delta tokens and subscriptions, Cosmos DB is used for storing data.
+---
 # Graph Shadowing
 
 ### Handling throttling efficiently, using delta retrieval and webhooks 
@@ -40,37 +57,13 @@ SaaS companies often need to provide user and group management with their soluti
 
 Below diagram, includes both delta and notifications and how they work together. There's two 'schedules / TimerTriggers' , a `ShortPolling` and `LongPolling`.
 
+![image-20240126151232693](Docs/Images/SequenceDiagram.png)
+
 1) `LongPolling` runs a few times a day. If needed, this can run alone, as the only schedule.
 2) `ShortPolling` is running every few minutes, and only executes a call to Graph, if a notification has been received since last run/poll.
 
 To handle the scheduling, ensuring that the delta dance is only running one a time for a given tenant, the `ShouldCallGraph` reads the current workflows state for the tenant using `IDurableOrchestrationClient` to determine if the workflow is already running for the given tenant. Instance Id of the workflow equals the tenant id .
-```mermaid
-stateDiagram-v2
-state if_state <<choice>>
-state if_state2 <<choice>> 
-[*] --> LongPolling : Tenant id (Poll)
-[*] --> ShortPolling : Tenant id (Notification)
 
-
-ShortPolling--> CallGraph 
-LongPolling --> CallGraph
-LongPolling --> RenewSubscriptions : Renew webhook subscriptions
-
-
-CallGraph --> if_state : Is sync running for tenant
-   if_state --> ShortPolling : Yes, skip this call, but reschedule
-   if_state --> GettingDeltaState : No
-
-GettingDeltaState --> if_state2 : DeltaStateExists
-if_state2 -->UsingDelta : Yes
-if_state2 -->GettingAll : No
-
-UsingDelta --> SavingDeltaTokenAndResults
-GettingAll--> SavingDeltaTokenAndResults
-        
-SavingDeltaTokenAndResults --> [*] : Data updated, delta token saved
-
-```
 
 `GettingDeltaState` uses `IDurableEntityContext` (a durable function) to get the delta token for the tenant. If token exists its used, if it does not exist, a full retrieval is performed, paging over the data. Finally both the retrieved data and delta token is stored. The tenant id 
 
@@ -79,7 +72,7 @@ SavingDeltaTokenAndResults --> [*] : Data updated, delta token saved
 Bash scripts is provided. Please ensure the following prerequisites: `.NET8, zip, jq, az cli.  `
 
 1) Clone the repository
-2) Go the the `Scripts`folder
+2) Go the `Scripts`folder
 3) Run `createEntraApp.sh`. This will create a new Entra App registration with the following scopes:
    ![image-20231116162055850](./Docs/Images/permissions.png)
    These scopes are required for this sample, where users, groups and memberships are pulled from Microsoft Graph.
@@ -117,7 +110,7 @@ Then, the tenant can be added to the shadow process as well as triggering and up
 >   Will add a tenant id to the short polling list, including the tenant in the next schedule
 >
 
-Besides, application insights is also provisioned to capture telemetry. A key point of interest are Microsoft Graph throttling - dependency information in general is of interest here, to see interaction characteristics with Microsoft Graph. A simple query is to see response codes
+Besides, application insights is also provisioned to capture telemetry. A key point of interest is Microsoft Graph throttling - dependency information in general is of interest here, to see interaction characteristics with Microsoft Graph. A simple query is to see response codes
 
 ```kql
 dependencies
@@ -137,7 +130,7 @@ union AppTraces
 | summarize count()  by Category_, AppRoleInstance
 ```
 
-## Summery
+## Summary
 
 Sample shows how to create a cache of users, groups and memberships, getting data from Microsoft Graph. The solution uses Azure Durable functions, to orchestrate retrieval using delta functions, as well as handling webhook subscriptions processing and renewal. 
 
