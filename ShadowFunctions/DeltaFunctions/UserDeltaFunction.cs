@@ -39,7 +39,6 @@ namespace ShadowFunctions.DeltaFunctions
 
             try
             {
-
                 if (entity == null || string.IsNullOrEmpty(entity!.State.UserDeltaToken))
                 {
                     var r = await _graphService.GetUserDelta(t.TenantId, null, CancellationToken.None);
@@ -52,11 +51,7 @@ namespace ShadowFunctions.DeltaFunctions
                         }
                         log.LogInformation($"Inital sync: {r.users.Count}, {t.TenantId}");
 
-
                         await client.Entities.SignalEntityAsync(entityId, "UpdateUserDelta", r.deltaToken);
-
-                        //await client.Entities.SignalEntityAsync(entityid, "Add", new Tenant() { TenantId = Guid.Parse(tenantId), UserDeltaToken = r.deltaToken });
-
                     }
                 }
                 else
@@ -76,15 +71,12 @@ namespace ShadowFunctions.DeltaFunctions
                         log.LogTrace("No deltas");
 
                     await client.Entities.SignalEntityAsync(entityId, "UpdateUserDelta", r.deltaToken);
-
-                    //await client.SignalEntityAsync(entityName, "update", r.deltaToken);
                 }
             }
             catch (Exception e)
             {
                 log.LogError(e, e.Message);
                 await client.Entities.SignalEntityAsync(entityId, "Remove", t);
-                // await client.SignalEntityAsync(entityName, "delete");
                 throw;
             }
 
