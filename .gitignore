@@ -396,3 +396,8 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+Scripts/temp/appSettings.local.json
+Scripts/temp/publishfunc/*
+Scripts/temp/*.zip
+Scripts/results.json
+
