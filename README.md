@@ -13,7 +13,8 @@ products:
 - azure-cosmos-db
 
 name: Graph Shadowing
-description: "Sample shows how to efficiently get data from Microsoft Graph, using OData deltas and subscriptions. Azure Durable functions is used to keep track of delta tokens and subscriptions, Cosmos DB is used for storing data.
+description: "Sample shows how to efficiently get data from Microsoft Graph, using OData deltas and subscriptions. Azure Durable functions is used to keep track of delta tokens and subscriptions, Cosmos DB is used for storing data."
+
 ---
 # Graph Shadowing
 
